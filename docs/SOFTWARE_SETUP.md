@@ -63,7 +63,18 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-The requirements pull in `requests`, `python-dotenv`, `waveshare-epd`, `smbus2`, and `Pillow`.
+The requirements pull in `requests`, `python-dotenv`, `smbus2`, and `Pillow`.
+
+### Installing Waveshare e-Paper library
+
+The Waveshare library must be installed separately due to repository checkout issues:
+
+```bash
+source .venv/bin/activate
+./scripts/install_waveshare.sh
+```
+
+This script clones the Waveshare repository and installs only the Python package needed for the display.
 
 ## 6. Environment variables (`.env`)
 

@@ -2,4 +2,3 @@ python-dotenv==1.0.1
 requests==2.32.3
 Pillow==11.0.0
 smbus2==0.5.0
-git+https://github.com/waveshare/e-Paper.git#subdirectory=RaspberryPi_JetsonNano/python
