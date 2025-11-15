@@ -1,0 +1,12 @@
+[Unit]
+Description=Weather display refresh
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/home/pi/weatherdisplay/.env
+WorkingDirectory=/home/pi/weatherdisplay
+ExecStart=/home/pi/weatherdisplay/.venv/bin/python src/main.py
+StandardOutput=journal
+StandardError=journal

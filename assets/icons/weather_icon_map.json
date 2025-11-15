@@ -1,0 +1,19 @@
+{
+  "thunderstorm": {"icon": "thunderstorm", "accent": "#D0021B"},
+  "drizzle": {"icon": "grain", "accent": "#0052CC"},
+  "rain": {"icon": "umbrella", "accent": "#0052CC"},
+  "snow": {"icon": "ac_unit", "accent": "#0052CC"},
+  "mist": {"icon": "air", "accent": "#000000"},
+  "smoke": {"icon": "air", "accent": "#000000"},
+  "haze": {"icon": "air", "accent": "#000000"},
+  "dust": {"icon": "air", "accent": "#000000"},
+  "fog": {"icon": "air", "accent": "#000000"},
+  "sand": {"icon": "air", "accent": "#000000"},
+  "ash": {"icon": "air", "accent": "#000000"},
+  "squall": {"icon": "air", "accent": "#0052CC"},
+  "tornado": {"icon": "cyclone", "accent": "#D0021B"},
+  "clear-day": {"icon": "wb_sunny", "accent": "#FFD800"},
+  "clear-night": {"icon": "nights_stay", "accent": "#0052CC"},
+  "few-clouds": {"icon": "wb_cloudy", "accent": "#0052CC"},
+  "clouds": {"icon": "cloud", "accent": "#0052CC"}
+}
