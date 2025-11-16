@@ -23,14 +23,18 @@ class DisplayDriver:
         # Only import and initialize waveshare if not in mock mode
         if not self._mock:
             try:
+                LOGGER.info("Importing waveshare_epd module...")
                 from waveshare_epd import epd7in3f
+                LOGGER.info("Creating EPD() instance...")
                 self._epd = epd7in3f.EPD()
+                LOGGER.info("Calling epd.init()...")
                 self._epd.init()
+                LOGGER.info("Display initialized successfully")
             except ImportError:
                 LOGGER.warning("waveshare_epd not available, falling back to mock mode")
                 self._mock = True
             except Exception as exc:
-                LOGGER.error("Failed to initialize e-paper display: %s", exc)
+                LOGGER.error("Failed to initialize e-paper display: %s", exc, exc_info=True)
                 self._mock = True
 
     def show(self, image: Image.Image) -> None:
