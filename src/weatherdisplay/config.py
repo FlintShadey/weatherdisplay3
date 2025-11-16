@@ -8,7 +8,7 @@ from typing import Dict, Mapping
 
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]  # Go up to workspace root
 ASSETS = ROOT / "assets"
 
 
