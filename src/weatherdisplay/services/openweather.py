@@ -12,7 +12,8 @@ from ..config import Settings
 from ..models import ForecastEntry, WeatherBundle, WeatherSnapshot
 
 LOGGER = logging.getLogger(__name__)
-API_URL = "https://api.openweathermap.org/data/2.5/onecall"
+CURRENT_API_URL = "https://api.openweathermap.org/data/2.5/weather"
+FORECAST_API_URL = "https://api.openweathermap.org/data/2.5/forecast"
 
 
 class WeatherFetchError(RuntimeError):
@@ -71,29 +72,42 @@ class OpenWeatherClient:
             "lon": self._settings.longitude,
             "appid": self._settings.api_key,
             "units": self._settings.units,
-            "exclude": "minutely,daily,alerts",
         }
+        
+        # Fetch current weather
         try:
-            resp = self._session.get(API_URL, params=params, timeout=12)
+            resp = self._session.get(CURRENT_API_URL, params=params, timeout=12)
             resp.raise_for_status()
-            payload = resp.json()
+            current_payload = resp.json()
         except requests.RequestException as exc:
-            raise WeatherFetchError("Unable to reach OpenWeatherMap") from exc
+            raise WeatherFetchError("Unable to reach OpenWeatherMap (current)") from exc
+
+        # Fetch hourly forecast (5-day/3-hour forecast)
+        try:
+            resp = self._session.get(FORECAST_API_URL, params=params, timeout=12)
+            resp.raise_for_status()
+            forecast_payload = resp.json()
+        except requests.RequestException as exc:
+            raise WeatherFetchError("Unable to reach OpenWeatherMap (forecast)") from exc
 
         tz = ZoneInfo(self._settings.timezone)
-        current_block = payload["current"]
-        weather_meta = current_block["weather"][0]
-        now = datetime.fromtimestamp(current_block["dt"], tz)
-        is_day = current_block.get("sunrise", 0) <= current_block["dt"] <= current_block.get("sunset", 0)
+        weather_meta = current_payload["weather"][0]
+        now = datetime.fromtimestamp(current_payload["dt"], tz)
+        
+        # Determine if it's daytime
+        sunrise = current_payload.get("sys", {}).get("sunrise", 0)
+        sunset = current_payload.get("sys", {}).get("sunset", 0)
+        is_day = sunrise <= current_payload["dt"] <= sunset
+        
         icon_name, icon_color = self._icons.resolve(weather_meta["id"], weather_meta["main"], is_day)
 
         current = WeatherSnapshot(
             timestamp=now,
-            temperature=current_block["temp"],
-            feels_like=current_block.get("feels_like", current_block["temp"]),
-            humidity=current_block.get("humidity", 0),
-            wind_speed=current_block.get("wind_speed", 0.0),
-            wind_gust=current_block.get("wind_gust"),
+            temperature=current_payload["main"]["temp"],
+            feels_like=current_payload["main"].get("feels_like", current_payload["main"]["temp"]),
+            humidity=current_payload["main"].get("humidity", 0),
+            wind_speed=current_payload.get("wind", {}).get("speed", 0.0),
+            wind_gust=current_payload.get("wind", {}).get("gust"),
             condition_code=weather_meta["id"],
             condition_label=weather_meta["main"],
             description=weather_meta.get("description", "").title(),
@@ -101,20 +115,25 @@ class OpenWeatherClient:
             icon_color=icon_color,
         )
 
-        forecast = self._parse_hourly(payload.get("hourly", []), tz, limit=4)
+        forecast = self._parse_forecast(forecast_payload.get("list", []), tz, limit=4)
         return WeatherBundle(current=current, next_hours=forecast)
 
-    def _parse_hourly(self, data: Sequence[Mapping[str, object]], tz: ZoneInfo, limit: int) -> list[ForecastEntry]:
+    def _parse_forecast(self, data: Sequence[Mapping[str, object]], tz: ZoneInfo, limit: int) -> list[ForecastEntry]:
+        """Parse 5-day/3-hour forecast data into hourly entries."""
         entries: list[ForecastEntry] = []
-        cursor = list(data)[1 : limit + 1] if len(data) > 1 else data[:limit]
-        for block in cursor:
+        # Take the first 'limit' entries (each is 3 hours apart)
+        for block in data[:limit]:
             weather_list = block.get("weather") or []
             descriptor = weather_list[0].get("main", "Clouds") if weather_list else "Clouds"
-            icon_name, icon_color = self._icons.resolve(int(weather_list[0]["id"]) if weather_list else 802, descriptor, True)
+            icon_name, icon_color = self._icons.resolve(
+                int(weather_list[0]["id"]) if weather_list else 802, 
+                descriptor, 
+                True
+            )
             entries.append(
                 ForecastEntry(
                     timestamp=datetime.fromtimestamp(int(block["dt"]), tz),
-                    temperature=float(block.get("temp", 0.0)),
+                    temperature=float(block["main"]["temp"]),
                     precipitation_probability=float(block.get("pop", 0.0)),
                     icon_key=icon_name,
                     icon_color=icon_color,
