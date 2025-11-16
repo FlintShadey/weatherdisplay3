@@ -4,14 +4,37 @@
 import sys
 import time
 import logging
+from pathlib import Path
 
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
-# Add waveshare library to path
-sys.path.insert(0, '/home/flint/.local/lib/python3.13/site-packages')
+# Find waveshare library - check multiple possible locations
+possible_paths = [
+    '/home/flint/.local/lib/python3.13/site-packages',
+    '/home/flint/e-Paper/RaspberryPi_JetsonNano/python/lib',
+    str(Path.home() / 'e-Paper' / 'RaspberryPi_JetsonNano' / 'python' / 'lib'),
+]
+
+waveshare_found = False
+for path in possible_paths:
+    if Path(path).exists():
+        sys.path.insert(0, path)
+        try:
+            import waveshare_epd
+            waveshare_found = True
+            print(f"Found waveshare_epd at: {path}")
+            break
+        except ImportError:
+            continue
+
+if not waveshare_found:
+    print("ERROR: waveshare_epd not found in any of these locations:")
+    for path in possible_paths:
+        print(f"  - {path} (exists: {Path(path).exists()})")
+    sys.exit(1)
 
 print("=" * 60)
 print("E-Paper Display Initialization Test")
