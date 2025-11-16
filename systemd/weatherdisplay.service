@@ -5,8 +5,8 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-EnvironmentFile=/home/pi/weatherdisplay/.env
-WorkingDirectory=/home/pi/weatherdisplay
-ExecStart=/home/pi/weatherdisplay/.venv/bin/python src/main.py
+EnvironmentFile=/home/flint/weatherdisplay3/.env
+WorkingDirectory=/home/flint/weatherdisplay3
+ExecStart=/home/flint/weatherdisplay3/.venv/bin/python src/main.py
 StandardOutput=journal
 StandardError=journal
