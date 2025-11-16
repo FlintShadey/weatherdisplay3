@@ -30,6 +30,14 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _should_request_shutdown(battery: BatteryStatus | None, cutoff: float) -> bool:
+    if battery is None:
+        return False
+    if battery.is_external_power:
+        return False
+    return battery.output_voltage <= cutoff
+
+
 def main() -> int:
     args = parse_args()
     configure_logging(args.verbose)
@@ -73,11 +81,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-
-def _should_request_shutdown(battery: BatteryStatus | None, cutoff: float) -> bool:
-    if battery is None:
-        return False
-    if battery.is_external_power:
-        return False
-    return battery.output_voltage <= cutoff
