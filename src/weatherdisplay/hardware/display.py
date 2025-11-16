@@ -7,11 +7,6 @@ from typing import Optional
 
 from PIL import Image
 
-try:
-    from waveshare_epd import epd7in3f
-except ImportError:  # pragma: no cover - running off target hardware
-    epd7in3f = None  # type: ignore
-
 from ..config import Settings
 
 LOGGER = logging.getLogger(__name__)
@@ -22,11 +17,21 @@ class DisplayDriver:
         self._settings = settings
         self._cache_path = settings.cache_dir / "last_frame.png"
         self._hash_path = settings.cache_dir / "last_frame.sha1"
-        self._mock = settings.mock_display or epd7in3f is None
+        self._mock = settings.mock_display
         self._epd = None
-        if not self._mock and epd7in3f is not None:
-            self._epd = epd7in3f.EPD()
-            self._epd.init()
+        
+        # Only import and initialize waveshare if not in mock mode
+        if not self._mock:
+            try:
+                from waveshare_epd import epd7in3f
+                self._epd = epd7in3f.EPD()
+                self._epd.init()
+            except ImportError:
+                LOGGER.warning("waveshare_epd not available, falling back to mock mode")
+                self._mock = True
+            except Exception as exc:
+                LOGGER.error("Failed to initialize e-paper display: %s", exc)
+                self._mock = True
 
     def show(self, image: Image.Image) -> None:
         checksum = hashlib.sha1(image.tobytes()).hexdigest()
