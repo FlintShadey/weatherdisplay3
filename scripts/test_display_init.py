@@ -13,9 +13,9 @@ logging.basicConfig(
 
 # Find waveshare library - check multiple possible locations
 possible_paths = [
-    '/home/flint/.local/lib/python3.13/site-packages',
     '/home/flint/e-Paper/RaspberryPi_JetsonNano/python/lib',
     str(Path.home() / 'e-Paper' / 'RaspberryPi_JetsonNano' / 'python' / 'lib'),
+    '/home/flint/.local/lib/python3.13/site-packages',
 ]
 
 waveshare_found = False
